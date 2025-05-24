@@ -31,7 +31,7 @@ app.post('/api/shorturl', (req, res) => {
   const url = req.body.url;
 
   // Simple regex check for valid URL
-  const urlRegex = /^(https?:\/\/)(www\.)?[\w\-]+\.[\w]{2,}.*$/;
+  const urlRegex = /^https?\:\/\/([a-zA-Z0-9]+\.)?[a-zA-Z0-9]+\.[a-zA-Z0-9]+\/?[\w\/\-\.\_\~\!\$\&\'\(\)\*\+\,\;\=\:\@\%]+?$/
 
   if (!urlRegex.test(url)) {
     return res.json({
