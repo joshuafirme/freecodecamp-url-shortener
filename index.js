@@ -30,32 +30,35 @@ app.get("/", function (req, res) {
 let urls = []; // In-memory URL storage
 
 app.post('/api/shorturl', (req, res) => {
-  const url = req.body.url;
+  const original_url = req.body.url;
 
-  const host = url.replace(/^.*?:\/\//, '')
-  dns.lookup(host, (err) => {
-    if (err) return res.json({
-      error: 'invalid url'
-    })
-    urls.push(url)
-    res.json({
-      original_url: url,
-      short_url: urls.length
-    })
-  })
+  try {
+    const hostname = urlParser.parse(original_url).hostname;
+
+    dns.lookup(hostname, (err) => {
+      if (err) {
+        return res.json({ error: 'invalid url' });
+      }
+
+      const short_url = counter++;
+      urls.push({ original_url, short_url });
+
+      return res.json({ original_url, short_url });
+    });
+  } catch (e) {
+    return res.json({ error: 'invalid url' });
+  }
 });
 
-// Step 3: Redirect using short_url
-app.get('/api/shorturl/:short', (req, res) => {
-  const short = parseInt(req.params.short);
-  const entry = urls.find(item => item.short_url === short);
+// ✅ GET route to redirect to original URL
+app.get('/api/shorturl/:short_url', (req, res) => {
+  const short_url = parseInt(req.params.short_url);
+  const entry = urls.find(u => u.short_url === short_url);
 
   if (entry) {
-    return res.redirect(entry.original_url);
+    return res.redirect(302, entry.original_url);
   } else {
-    return res.status(404).json({
-      error: 'No short URL found for the given input'
-    });
+    return res.json({ error: 'No short URL found for the given input' });
   }
 });
 
