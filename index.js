@@ -4,8 +4,9 @@
 // init project
 var express = require('express');
 const bodyParser = require('body-parser');
+const dns = require('dns');
+const urlParser = require('url');
 var app = express();
-
 
 app.use(bodyParser.urlencoded({
   extended: false
@@ -27,7 +28,9 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-let urls = []; // In-memory URL storage
+// In-memory DB
+const urlDatabase = {};
+let idCounter = 1;
 
 app.post('/api/shorturl', (req, res) => {
   const submittedUrl = req.body.url;
