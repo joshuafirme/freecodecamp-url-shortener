@@ -7,7 +7,9 @@ const bodyParser = require('body-parser');
 var app = express();
 
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.use(bodyParser.json());
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
@@ -30,29 +32,17 @@ let urls = []; // In-memory URL storage
 app.post('/api/shorturl', (req, res) => {
   const url = req.body.url;
 
-  // Simple regex check for valid URL
-  const urlRegex = /^https?\:\/\/([a-zA-Z0-9]+\.)?[a-zA-Z0-9]+\.[a-zA-Z0-9]+\/?[\w\/\-\.\_\~\!\$\&\'\(\)\*\+\,\;\=\:\@\%]+?$/
-
-  if (!urlRegex.test(url)) {
-    return res.json({
+  const host = url.replace(/^.*?:\/\//, '')
+  dns.lookup(host, (err) => {
+    if (err) return res.json({
       error: 'invalid url'
-    });
-  }
-
-  // Check if URL already exists
-  const existing = urls.find(entry => entry.original_url === url);
-  if (existing) {
-    return res.json(existing);
-  }
-
-  const shortUrl = urls.length + 1;
-  const entry = {
-    original_url: url,
-    short_url: shortUrl
-  };
-  urls.push(entry);
-
-  res.json(entry);
+    })
+    urls.push(url)
+    res.json({
+      original_url: url,
+      short_url: urls.length
+    })
+  })
 });
 
 // Step 3: Redirect using short_url
